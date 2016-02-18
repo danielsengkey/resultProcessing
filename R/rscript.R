@@ -125,7 +125,7 @@ hist(
   add = TRUE
 )
 
-#' Since the y-axises are different, therefore we
+#' Since the y-axes are different, therefore we
 #' need to define it manually. Choose the number that
 #' covers both frequencies.
 
