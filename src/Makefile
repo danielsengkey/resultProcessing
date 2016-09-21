@@ -9,9 +9,10 @@
 TARGET = resultProcessing$(EXE_SUFFIX)
 
 # User interface (uncomment one) (-u option)
-USERIF_LIBS = $(ALL_ENV_LIBS) # that is, $(TKENV_LIBS) $(CMDENV_LIBS)
+USERIF_LIBS = $(ALL_ENV_LIBS) # that is, $(TKENV_LIBS) $(QTENV_LIBS) $(CMDENV_LIBS)
 #USERIF_LIBS = $(CMDENV_LIBS)
 #USERIF_LIBS = $(TKENV_LIBS)
+#USERIF_LIBS = $(QTENV_LIBS)
 
 # C++ include paths (with -I)
 INCLUDE_PATH = -I. -Itictoc
@@ -27,12 +28,15 @@ PROJECT_OUTPUT_DIR = ../out
 PROJECTRELATIVE_PATH = src
 O = $(PROJECT_OUTPUT_DIR)/$(CONFIGNAME)/$(PROJECTRELATIVE_PATH)
 
-# Object files for local .cc and .msg files
+# Object files for local .cc, .msg and .sm files
 OBJS = $O/tictoc/txc16.o $O/tictoc/tictoc16_m.o
 
 # Message files
 MSGFILES = \
     tictoc/tictoc16.msg
+
+# SM files
+SMFILES =
 
 #------------------------------------------------------------------------------
 
@@ -60,6 +64,7 @@ OMNETPP_LIBS = -L"$(OMNETPP_LIB_SUBDIR)" -L"$(OMNETPP_LIB_DIR)" -loppmain$D $(US
 
 COPTS = $(CFLAGS)  $(INCLUDE_PATH) -I$(OMNETPP_INCL_DIR)
 MSGCOPTS = $(INCLUDE_PATH)
+SMCOPTS =
 
 # we want to recompile everything if COPTS changes,
 # so we store COPTS into $COPTS_FILE and have object
@@ -86,7 +91,7 @@ $O/$(TARGET): $(OBJS)  $(wildcard $(EXTRA_OBJS)) Makefile
 	@echo Creating executable: $@
 	$(Q)$(CXX) $(LDFLAGS) -o $O/$(TARGET)  $(OBJS) $(EXTRA_OBJS) $(AS_NEEDED_OFF) $(WHOLE_ARCHIVE_ON) $(LIBS) $(WHOLE_ARCHIVE_OFF) $(OMNETPP_LIBS)
 
-.PHONY: all clean cleanall depend msgheaders
+.PHONY: all clean cleanall depend msgheaders smheaders
 
 .SUFFIXES: .cc
 
@@ -99,21 +104,27 @@ $O/%.o: %.cc $(COPTS_FILE)
 	$(qecho) MSGC: $<
 	$(Q)$(MSGC) -s _m.cc $(MSGCOPTS) $?
 
+%_sm.cc %_sm.h: %.sm
+	$(qecho) SMC: $<
+	$(Q)$(SMC) -c++ -suffix cc $(SMCOPTS) $?
+
 msgheaders: $(MSGFILES:.msg=_m.h)
+
+smheaders: $(SMFILES:.sm=_sm.h)
 
 clean:
 	$(qecho) Cleaning...
 	$(Q)-rm -rf $O
 	$(Q)-rm -f resultProcessing resultProcessing.exe libresultProcessing.so libresultProcessing.a libresultProcessing.dll libresultProcessing.dylib
-	$(Q)-rm -f ./*_m.cc ./*_m.h
-	$(Q)-rm -f tictoc/*_m.cc tictoc/*_m.h
+	$(Q)-rm -f ./*_m.cc ./*_m.h ./*_sm.cc ./*_sm.h
+	$(Q)-rm -f tictoc/*_m.cc tictoc/*_m.h tictoc/*_sm.cc tictoc/*_sm.h
 
 cleanall: clean
 	$(Q)-rm -rf $(PROJECT_OUTPUT_DIR)
 
 depend:
 	$(qecho) Creating dependencies...
-	$(Q)$(MAKEDEPEND) $(INCLUDE_PATH) -f Makefile -P\$$O/ -- $(MSG_CC_FILES)  ./*.cc tictoc/*.cc
+	$(Q)$(MAKEDEPEND) $(INCLUDE_PATH) -f Makefile -P\$$O/ -- $(MSG_CC_FILES) $(SM_CC_FILES)  ./*.cc tictoc/*.cc
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 $O/tictoc/tictoc16_m.o: tictoc/tictoc16_m.cc \

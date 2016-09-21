@@ -13,6 +13,7 @@
 #include <omnetpp.h>
 #include "tictoc16_m.h"
 
+using namespace omnetpp;
 
 /**
  * The main problem with the previous step is that we must modify the model's
@@ -41,8 +42,8 @@ class Txc : public cSimpleModule
   protected:
     virtual TicTocMsg16 *generateMessage();
     virtual void forwardMessage(TicTocMsg16 *msg);
-    virtual void initialize();
-    virtual void handleMessage(cMessage *msg);
+    virtual void initialize() override;
+    virtual void handleMessage(cMessage *msg) override;
 };
 
 Define_Module(Txc);
@@ -73,7 +74,7 @@ void Txc::handleMessage(cMessage *msg)
         emit(arrivalSignal, hopcount);
 
         EV << "Message " << ttmsg << " arrived after " << hopcount << " hops.\n";
-        bubble("ARRIVED, starting new one!");
+        bubble("ARRIVED, simulation finished!");
 
         delete ttmsg;
         // Following lines are commented. So no other message will be sent.
@@ -94,7 +95,7 @@ TicTocMsg16 *Txc::generateMessage()
 {
     // Produce source and destination addresses.
     int src = getIndex();
-    int n = size();
+    int n = getVectorSize();
 //    int dest = intuniform(0,n-2);
 //    if (dest>=src) dest++;
 //  Instead of random destination (which differ from repetition-to-repetition, for seed=${repetition})
